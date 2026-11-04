@@ -1,20 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { Trail } from '../src/core/effects/trail'
 import { instant } from '../src/core/motion'
-import type { Frame } from '../src/core/types'
+import { frame } from './browser'
 
 const dt = 1 / 60
-
-function frame(time: number, x: number, vx: number): Frame {
-  return {
-    time,
-    dt,
-    pointer: { x, y: 0, vx, vy: 0 },
-    pressed: false,
-    visible: true,
-    target: null,
-  }
-}
 
 function recorded(trail: Trail): { x: number; time: number }[] {
   return (trail as unknown as { points: { x: number; time: number }[] }).points

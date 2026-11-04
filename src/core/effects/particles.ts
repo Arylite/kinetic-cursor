@@ -3,8 +3,12 @@ import type { CursorEffect, Frame, Point } from '../types'
 export interface ParticlesOptions {
   /** One color, or a palette sampled per particle. */
   color?: string | readonly string[]
-  /** Distance the pointer travels per emitted particle, in px. */
+  /** Distance the pointer travels between emissions, in px. */
   spacing?: number
+  /** Particles released at each emission. */
+  count?: number
+  /** Particles thrown outward on each press. */
+  burst?: number
   /** Largest particle diameter, in px. */
   size?: number
   /** Average lifetime, in seconds. */
@@ -38,6 +42,7 @@ type ResolvedOptions = Required<Omit<ParticlesOptions, 'color'>> & Pick<Particle
 export class Particles implements CursorEffect {
   private options: ResolvedOptions
   private particles: Particle[] = []
+  private bursts: Point[] = []
   private last: Point | null = null
   private carry = 0
   private time = 0
@@ -51,7 +56,11 @@ export class Particles implements CursorEffect {
   }
 
   get idle(): boolean {
-    return this.particles.length === 0
+    return this.particles.length === 0 && this.bursts.length === 0
+  }
+
+  press(x: number, y: number): void {
+    if (this.options.burst > 0) this.bursts.push({ x, y })
   }
 
   update(frame: Frame): void {
@@ -67,6 +76,16 @@ export class Particles implements CursorEffect {
       particle.y += particle.vy * dt
     }
     this.particles = this.particles.filter((particle) => time - particle.born < particle.life)
+
+    for (const { x, y } of this.bursts) {
+      const { burst, spread } = this.options
+      for (let i = 0; i < burst; i++) {
+        const angle = ((i + Math.random() * 0.6) / burst) * Math.PI * 2
+        const speed = spread * (1.5 + Math.random())
+        this.spawn(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, time)
+      }
+    }
+    this.bursts.length = 0
 
     if (!frame.visible) {
       this.last = null
@@ -88,32 +107,39 @@ export class Particles implements CursorEffect {
     }
   }
 
-  private emit(from: Point, frame: Frame): void {
-    const { pointer } = frame
-    const { spacing } = this.options
+  private emit(from: Point, { pointer, time }: Frame): void {
+    const { spacing, count, inherit, spread } = this.options
     const distance = Math.hypot(pointer.x - from.x, pointer.y - from.y)
     if (distance === 0) return
 
     let offset = spacing - this.carry
     while (offset <= distance) {
       const s = offset / distance
-      this.spawn(from.x + (pointer.x - from.x) * s, from.y + (pointer.y - from.y) * s, frame)
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const speed = spread * (0.3 + Math.random() * 0.7)
+        this.spawn(
+          from.x + (pointer.x - from.x) * s,
+          from.y + (pointer.y - from.y) * s,
+          pointer.vx * inherit + Math.cos(angle) * speed,
+          pointer.vy * inherit + Math.sin(angle) * speed,
+          time,
+        )
+      }
       offset += spacing
     }
     this.carry = distance - (offset - spacing)
   }
 
-  private spawn(x: number, y: number, { pointer, time }: Frame): void {
-    const { color, size, lifetime, inherit, spread, max } = this.options
-    const angle = Math.random() * Math.PI * 2
-    const speed = spread * (0.3 + Math.random() * 0.7)
+  private spawn(x: number, y: number, vx: number, vy: number, time: number): void {
+    const { color, size, lifetime, max } = this.options
     const palette = typeof color === 'string' ? [color] : color
 
     this.particles.push({
       x,
       y,
-      vx: pointer.vx * inherit + Math.cos(angle) * speed,
-      vy: pointer.vy * inherit + Math.sin(angle) * speed,
+      vx,
+      vy,
       born: time,
       life: lifetime * (0.6 + Math.random() * 0.8),
       size: size * (0.4 + Math.random() * 0.6),
@@ -127,6 +153,8 @@ function resolve(options: ParticlesOptions): ResolvedOptions {
   return {
     color: options.color,
     spacing: options.spacing ?? 12,
+    count: options.count ?? 1,
+    burst: options.burst ?? 0,
     size: options.size ?? 4,
     lifetime: options.lifetime ?? 0.7,
     inherit: options.inherit ?? 0.12,

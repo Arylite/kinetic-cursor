@@ -33,17 +33,11 @@ The native cursor is hidden as soon as the custom one appears, and restored when
 <Cursor preset="ribbon" />
 ```
 
-| Preset    | Look                                                            |
-| --------- | --------------------------------------------------------------- |
-| `glide`   | Crisp dot with a soft ring that wraps around controls. Default. |
-| `minimal` | Single dot with speed-adaptive smoothing.                       |
-| `ribbon`  | Dot drawing a tapered trail along its path.                     |
-| `sparkle` | Warm dot shedding particles, with a ripple on click.            |
-| `lens`    | Large inverting disc that grows over interactive elements.      |
+There are fifteen presets, from a single dot to particles and frosted glass. See [Presets](./presets.md) for the full list.
 
 ## Customize
 
-Any prop passed to `Cursor` is merged over the preset. Pass `false` to remove a part.
+A cursor is made of named **layers** (DOM elements that follow the pointer) and optional canvas **effects** (`trail`, `particles`, `ripple`). Any prop passed to `Cursor` is merged over the preset: layers are merged by name, and `false` removes a layer or an effect.
 
 ```tsx
 import { Cursor, spring } from 'kinetic-cursor'
@@ -54,7 +48,9 @@ export function AppCursor() {
       preset="glide"
       color="#7c5cff"
       blendMode="normal"
-      ring={{ size: 44, motion: spring({ stiffness: 260, damping: 24, matchVelocity: 0.6 }) }}
+      layers={{
+        ring: { size: 44, motion: spring({ stiffness: 260, damping: 24, matchVelocity: 0.6 }) },
+      }}
       ripple={{ radius: 32 }}
     />
   )
@@ -63,9 +59,10 @@ export function AppCursor() {
 
 ```tsx
 <Cursor preset="ribbon" trail={false} />
+<Cursor preset="glide" layers={{ dot: false }} />
 ```
 
-`glide`, `ribbon`, `minimal` and `lens` use `mix-blend-mode: difference` so the cursor stays visible on light and dark backgrounds. Set `blendMode="normal"` and a `color` to use a fixed color instead.
+Most presets use `mix-blend-mode: difference` with a white color, so the cursor stays visible on light and dark backgrounds. Set `blendMode="normal"` and a `color` to use a fixed color instead.
 
 ## Next.js and SSR
 
@@ -91,6 +88,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ## Next steps
 
+- [Presets](./presets.md) to pick a look or build your own
+- [Examples](./examples.md) for common recipes
 - [Targets and states](./targets.md) for per-element behavior
 - [Motion](./motion.md) to tune how the cursor moves
 - [API reference](./api.md)

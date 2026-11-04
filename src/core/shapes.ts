@@ -1,4 +1,6 @@
-import type { ShapeRule } from './layer'
+import type { ShapeContext, ShapeOverride } from './layer'
+
+type ShapeFunction = (context: ShapeContext) => ShapeOverride
 
 export interface MorphOptions {
   /** Space between the element edge and the layer, in px. */
@@ -8,7 +10,7 @@ export interface MorphOptions {
 }
 
 /** Wraps the hovered element, matching its size and corner radius. */
-export function morph({ padding = 6, parallax = 0.1 }: MorphOptions = {}): ShapeRule {
+export function morph({ padding = 6, parallax = 0.1 }: MorphOptions = {}): ShapeFunction {
   return ({ target, pointer }) => {
     const { rect } = target
     const cx = rect.x + rect.width / 2
@@ -33,7 +35,7 @@ export interface CaretOptions {
 }
 
 /** Turns the layer into a text caret sized to the hovered element's font. */
-export function caret({ width = 2, lineHeight = 1.3 }: CaretOptions = {}): ShapeRule {
+export function caret({ width = 2, lineHeight = 1.3 }: CaretOptions = {}): ShapeFunction {
   return ({ target }) => ({
     width,
     height: target.fontSize * lineHeight,

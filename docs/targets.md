@@ -54,19 +54,23 @@ import { Cursor, caret, morph } from 'kinetic-cursor'
 export function AppCursor() {
   return (
     <Cursor
-      ring={{
-        states: {
-          link: { size: 56 },
-          button: morph({ padding: 8 }),
-          text: { opacity: 0 },
-          drag: ({ target }) => ({ size: target.rect.height }),
+      layers={{
+        ring: {
+          states: {
+            link: { size: 56 },
+            button: morph({ padding: 8 }),
+            text: { opacity: 0 },
+            drag: ({ target }) => ({ size: target.rect.height }),
+          },
         },
+        dot: { states: { text: caret() } },
       }}
-      dot={{ states: { text: caret() } }}
     />
   )
 }
 ```
+
+States are merged with the preset's states, so this only changes the kinds it names.
 
 An override accepts `size`, `width`, `height`, `radius`, `opacity`, `scale` and `stretch`, plus `x` and `y` to anchor the layer to a point instead of the pointer.
 
@@ -75,12 +79,18 @@ An override accepts `size`, `width`, `height`, `radius`, `opacity`, `scale` and 
 | `morph({ padding, parallax })` | Wraps the element, matching its size and corner radius |
 | `caret({ width, lineHeight })` | Becomes a text caret sized to the element's font       |
 
+Helpers return functions, so they can be extended:
+
+```tsx
+const squareMorph = (context: ShapeContext) => ({ ...morph()(context), radius: 2 })
+```
+
 ## Styling by state
 
-Every layer element carries the active kind in `data-cursor-state`, so states can also be styled with CSS:
+Every layer element carries its name in `data-cursor-layer` and the active kind in `data-cursor-state`, so states can also be styled with CSS:
 
 ```css
-.my-ring[data-cursor-state='button'] {
+[data-cursor-layer='ring'][data-cursor-state='button'] {
   background: rgb(255 255 255 / 0.08);
 }
 ```

@@ -1,12 +1,5 @@
-export { CursorEngine, type CursorState, type EngineOptions } from './engine'
-export {
-  Layer,
-  type LayerOptions,
-  type Shape,
-  type ShapeContext,
-  type ShapeOverride,
-  type ShapeRule,
-} from './layer'
+export { CursorEngine, type CursorState, type EngineOptions, type LayerHandle } from './engine'
+export type { LayerOptions, Shape, ShapeContext, ShapeOverride, ShapeRule } from './layer'
 export {
   adaptive,
   instant,

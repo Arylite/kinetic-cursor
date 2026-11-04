@@ -60,6 +60,31 @@ describe('spring', () => {
   })
 })
 
+describe('spring overshoot', () => {
+  const stopAbruptly = (overshoot: boolean) => {
+    const motion = spring({ stiffness: 400, damping: 40, matchVelocity: 1, overshoot })
+    const body = createBody([0])
+    let target = 0
+    for (let i = 0; i < 60; i++) motion(body, [(target += 20)], [2400], 1 / 120)
+    let furthest = body.value[0]
+    for (let i = 0; i < 120; i++) {
+      motion(body, [target], [0], 1 / 120)
+      furthest = Math.max(furthest, body.value[0])
+    }
+    return { furthest: furthest - target, settled: body.value[0] - target }
+  }
+
+  it('carries past an abrupt stop by default', () => {
+    expect(stopAbruptly(true).furthest).toBeGreaterThan(5)
+  })
+
+  it('lands on the target when disabled', () => {
+    const { furthest, settled } = stopAbruptly(false)
+    expect(furthest).toBeLessThanOrEqual(1e-9)
+    expect(settled).toBe(0)
+  })
+})
+
 describe('smooth', () => {
   it('halves the distance every half-life', () => {
     const body = run(smooth({ halfLife: 0.1 }), 0.1, 50)

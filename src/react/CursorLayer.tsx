@@ -3,6 +3,8 @@ import type { LayerOptions } from '../core/layer'
 import { useCursorLayer } from './hooks'
 
 export interface CursorLayerProps extends LayerOptions {
+  /** Exposed as `data-cursor-layer` for styling. */
+  name?: string
   className?: string
   /** Visual styles. Geometry and opacity are driven by the layer options. */
   style?: CSSProperties
@@ -19,6 +21,7 @@ const baseStyle: CSSProperties = {
 }
 
 export function CursorLayer({
+  name,
   className,
   style,
   children,
@@ -26,7 +29,12 @@ export function CursorLayer({
 }: CursorLayerProps): ReactNode {
   const ref = useCursorLayer<HTMLDivElement>(options)
   return (
-    <div ref={ref} className={className} style={{ ...baseStyle, ...style }}>
+    <div
+      ref={ref}
+      data-cursor-layer={name}
+      className={className}
+      style={{ ...baseStyle, ...style }}
+    >
       {children}
     </div>
   )

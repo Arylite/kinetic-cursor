@@ -1,5 +1,7 @@
 # kinetic-cursor
 
+[![CI](https://github.com/Arylite/kinetic-cursor/actions/workflows/ci.yml/badge.svg)](https://github.com/Arylite/kinetic-cursor/actions/workflows/ci.yml)
+
 Physics-driven custom cursors for React. Analytic springs, velocity-matched following, context-aware shapes and canvas effects, with no React re-renders per frame.
 
 ```sh
@@ -25,13 +27,15 @@ export function App() {
 - Trails that retract along their own path instead of collapsing into the pointer
 - Shapes that react to links, buttons, text fields and custom targets, including morphing around controls
 - Magnetic elements, labels, particles and click ripples
-- Five presets, composable layers and effects, and hooks for fully custom cursors
+- Fifteen presets, named composable layers and effects, and hooks for fully custom cursors
 - SSR-safe, touch-aware, respects reduced motion and forced colors
 - Tree-shakeable ESM, no runtime dependencies, framework-agnostic core
 
 ## Documentation
 
 - [Getting started](./docs/getting-started.md)
+- [Presets](./docs/presets.md)
+- [Examples](./docs/examples.md)
 - [Targets and states](./docs/targets.md)
 - [Motion](./docs/motion.md)
 - [API reference](./docs/api.md)

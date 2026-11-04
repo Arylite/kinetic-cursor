@@ -7,8 +7,8 @@ import {
   type RefCallback,
   type RefObject,
 } from 'react'
-import type { CursorState } from '../core/engine'
-import type { Layer, LayerOptions } from '../core/layer'
+import type { CursorState, LayerHandle } from '../core/engine'
+import type { LayerOptions } from '../core/layer'
 import type { CursorEffect, Frame, TargetOptions } from '../core/types'
 import { useCursorEngine } from './context'
 
@@ -27,7 +27,7 @@ export function useCursorState(): CursorState {
 export function useCursorLayer<T extends HTMLElement>(options: LayerOptions): RefCallback<T> {
   const engine = useCursorEngine()
   const optionsRef = useRef(options)
-  const layerRef = useRef<Layer | null>(null)
+  const layerRef = useRef<LayerHandle | null>(null)
 
   useEffect(() => {
     optionsRef.current = options
@@ -36,7 +36,7 @@ export function useCursorLayer<T extends HTMLElement>(options: LayerOptions): Re
 
   return useCallback(
     (element: T | null) => {
-      if (layerRef.current) engine.removeLayer(layerRef.current)
+      layerRef.current?.remove()
       layerRef.current = element ? engine.addLayer(element, optionsRef.current) : null
     },
     [engine],

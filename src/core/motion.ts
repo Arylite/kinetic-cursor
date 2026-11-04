@@ -85,6 +85,11 @@ export interface SpringOptions {
    * still easing out of stops and direction changes.
    */
   matchVelocity?: number
+  /**
+   * When false, the body never travels past its target: an abrupt stop lands
+   * it on the pointer instead of carrying it beyond and springing back.
+   */
+  overshoot?: boolean
 }
 
 /**
@@ -96,11 +101,14 @@ export function spring({
   damping = 26,
   mass = 1,
   matchVelocity = 0,
+  overshoot = true,
 }: SpringOptions = {}): Motion {
   const omega = Math.sqrt(stiffness / mass)
   const zeta = damping / (2 * Math.sqrt(stiffness * mass))
 
   return (body, target, targetVelocity, dt) => {
+    const before = overshoot ? null : target.map((end, i) => body.value[i] - end)
+
     target.forEach((end, i) => {
       const u = targetVelocity?.[i] ?? 0
       const lag = (-2 * zeta * (1 - matchVelocity) * u) / omega
@@ -114,6 +122,13 @@ export function spring({
       body.value[i] = end + lag + offset
       body.velocity[i] = u + velocity
     })
+
+    if (before && target.reduce((sum, end, i) => sum + before[i] * (body.value[i] - end), 0) < 0) {
+      target.forEach((end, i) => {
+        body.value[i] = end
+        body.velocity[i] = targetVelocity?.[i] ?? 0
+      })
+    }
   }
 }
 

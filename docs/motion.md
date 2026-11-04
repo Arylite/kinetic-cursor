@@ -8,8 +8,10 @@ import { Cursor, adaptive, spring } from 'kinetic-cursor'
 export function AppCursor() {
   return (
     <Cursor
-      dot={{ motion: spring({ stiffness: 2200, damping: 94, matchVelocity: 0.85 }) }}
-      ring={{ motion: adaptive({ halfLife: 0.1 }) }}
+      layers={{
+        dot: { motion: spring({ stiffness: 2200, damping: 94, matchVelocity: 0.85 }) },
+        ring: { motion: adaptive({ halfLife: 0.1 }) },
+      }}
     />
   )
 }
@@ -27,8 +29,17 @@ A damped spring solved exactly each frame. It behaves identically at 30, 60 or 2
 | `damping`       | `26`    | Resistance. Lower values overshoot and bounce.                      |
 | `mass`          | `1`     | Inertia. Higher is heavier and slower to react.                     |
 | `matchVelocity` | `0`     | From 0 to 1, how closely the body keeps pace with a moving pointer. |
+| `overshoot`     | `true`  | When false, the body never travels past its target.                 |
 
 A plain spring trails behind a moving pointer. With `matchVelocity: 1` that lag disappears: the body moves with the pointer, and the spring only shapes how it settles when the pointer stops or turns. Values between 0.5 and 0.9 give a responsive cursor with a little inertia.
+
+Set `overshoot: false` to stop the cursor exactly on the pointer when it stops abruptly, instead of carrying past it and springing back. It also removes the wobble of bouncy springs, while keeping their feel during movement.
+
+```tsx
+const stopDead = spring({ stiffness: 2200, damping: 94, matchVelocity: 0.85, overshoot: false })
+
+<Cursor layers={{ dot: { motion: stopDead } }} trail={{ motion: stopDead }} />
+```
 
 The spring is critically damped (fastest settle, no overshoot) when `damping = 2 * sqrt(stiffness * mass)`.
 
@@ -54,7 +65,7 @@ Follows the pointer exactly.
 Size, radius, opacity, scale and stretch animate with `shapeMotion`, separately from position:
 
 ```tsx
-<Cursor ring={{ shapeMotion: spring({ stiffness: 300, damping: 20 }) }} />
+<Cursor layers={{ ring: { shapeMotion: spring({ stiffness: 300, damping: 20 }) } }} />
 ```
 
 ## Stretch
@@ -63,7 +74,7 @@ Size, radius, opacity, scale and stretch animate with `shapeMotion`, separately 
 
 ## Trails and particles
 
-The trail head uses the dot's motion by default, so the ribbon always emerges from the dot. The trail records the path the head actually travelled at fixed spacing and expires points by age: when the pointer stops, it retracts along its own path instead of being pulled into the cursor.
+The trail head has its own `motion`. Give it the same motion as the layer it should emerge from, as the presets do, so the ribbon stays attached to it. The trail records the path the head actually travelled at fixed spacing and expires points by age: when the pointer stops, it retracts along its own path instead of being pulled into the cursor.
 
 Particles are emitted per distance travelled, so a resting pointer never accumulates them. They drift with their own drag and are never attracted back to the cursor.
 

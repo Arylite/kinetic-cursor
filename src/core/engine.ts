@@ -20,6 +20,11 @@ export interface EngineOptions {
   zIndex?: number
 }
 
+export interface LayerHandle {
+  configure(options: LayerOptions): void
+  remove(): void
+}
+
 export interface CursorState {
   readonly enabled: boolean
   readonly visible: boolean
@@ -144,15 +149,20 @@ export class CursorEngine {
     this.wake()
   }
 
-  addLayer(element: HTMLElement, options: LayerOptions): Layer {
+  /** Drives an element inside `root` as a cursor layer. */
+  addLayer(element: HTMLElement, options: LayerOptions): LayerHandle {
     const layer = new Layer(element, options)
     this.layers.add(layer)
     this.wake()
-    return layer
-  }
-
-  removeLayer(layer: Layer): void {
-    this.layers.delete(layer)
+    return {
+      configure: (next) => {
+        layer.configure(next)
+        this.wake()
+      },
+      remove: () => {
+        this.layers.delete(layer)
+      },
+    }
   }
 
   addEffect(effect: CursorEffect): () => void {
